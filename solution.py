@@ -44,14 +44,22 @@ def naked_twins(values):
     """
     # Find all instances of naked twins
     # Eliminate the naked twins as possibilities for their peers
-    for unit in unitlist:
+    for unit in unitlist:       # Search the different units separately
+        # Find boxes with only 2 values
         list_double_values = [(box, values[box]) for box in unit if len(values[box]) == 2]
+        # Check that there are at least 2 boxes in the list
         if len(list_double_values) >= 2:
+            # Extract the values from these boxes
             boxes_double, values_double = zip(*list_double_values)
+            # Iterate through the values contained in these boxes
             for value in set(values_double):
+                # If the boxes have matching values, they are twins, add them to the list
                 boxes_twins = [box for box in boxes_double if values[box] == value]
+                # Verify that there are 2 matching boxes
                 if len(boxes_twins) >= 2:
+                    # find boxes containing the values in the twins that are not the twins themselves
                     for box in [box for box in unit if box not in boxes_twins]:
+                        # remove these values from the other boxes
                         values[box] = values[box].replace(value[0], '').replace(value[1], '')
     return values
 
