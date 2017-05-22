@@ -3,14 +3,19 @@ assignments = []
 rows = 'ABCDEFGHI'
 cols = '123456789'
 
+def cross(A, B):
+    "Cross product of elements in A and elements in B."
+    return [s+t for s in A for t in B]
+
 boxes = cross(rows, cols)
 
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-diagonal_units = [[r+c for r, c in zip(row, col)] for row, col in zip([rows, rows], [cols, cols[::-1]])]
-unitlist = row_units + column_units + square_units
-unitlist_diag = row_units + col_units + square_units + diagonal_units
+diagonal_units = [['A1', 'B2', 'C3', 'D4', 'E5', 'F6', 'G7', 'H8', 'I9'],
+                  ['A9', 'B8', 'C7', 'D6', 'E5', 'F4', 'G3', 'H2', 'I1']]
+#unitlist = row_units + column_units + square_units
+unitlist = row_units + column_units + square_units + diagonal_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
@@ -37,13 +42,19 @@ def naked_twins(values):
     Returns:
         the values dictionary with the naked twins eliminated from peers.
     """
-
     # Find all instances of naked twins
     # Eliminate the naked twins as possibilities for their peers
+    for unit in unitlist:
+        list_double_values = [(box, values[box]) for box in unit if len(values[box]) == 2]
+        if len(list_double_values) >= 2:
+            boxes_double, values_double = zip(*list_double_values)
+            for value in set(values_double):
+                boxes_twins = [box for box in boxes_double if values[box] == value]
+                if len(boxes_twins) >= 2:
+                    for box in [box for box in unit if box not in boxes_twins]:
+                        values[box] = values[box].replace(value[0], '').replace(value[1], '')
+    return values
 
-def cross(A, B):
-    "Cross product of elements in A and elements in B."
-    return [s+t for s in a for t in b]
 
 def grid_values(grid):
     """
@@ -102,6 +113,7 @@ def reduce_puzzle(values):
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
         values = eliminate(values)
         values = only_choice(values)
+        values = naked_twins(values)
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after
         if len([box for box in values.keys() if len(values[box]) == 0]):
@@ -134,6 +146,7 @@ def solve(grid):
     Returns:
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
+    return search(grid_values(grid))
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
